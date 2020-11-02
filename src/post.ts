@@ -1,12 +1,11 @@
 import * as vscode from 'vscode'
 import * as path from 'path'
-import fetch from 'node-fetch'
 import { getProcessor } from 'bytemd'
 import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math-ssr'
 import highlight from '@bytemd/plugin-highlight-ssr'
 import visit from 'unist-util-visit'
-import { sendPv } from './utils'
+import { myFetch, sendPv } from './utils'
 import { URL } from 'url'
 
 const processor = getProcessor({
@@ -69,16 +68,11 @@ export function createPostHandler(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One, // Editor column to show the new webview panel in.
       {} // Webview options. More on these later.
     )
-    const res = await fetch(
-      'https://apinew.juejin.im/content_api/v1/article/detail',
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ article_id: id }),
-      }
-    )
+    const res = await myFetch({
+      path: '/content_api/v1/article/detail',
+      method: 'POST',
+      body: { article_id: id },
+    })
     const json = await res.json()
 
     const getStyleSrc = (name: string) => {
@@ -130,20 +124,15 @@ export class PostProvider implements vscode.TreeDataProvider<PostItem> {
   async getChildren(element?: PostItem) {
     if (element) return []
 
-    const res = await fetch(
-      'https://apinew.juejin.im/recommend_api/v1/article/recommend_all_feed',
-      {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          cursor: '0',
-          id_type: 2,
-          sort_type: 300,
-        }),
-      }
-    )
+    const res = await myFetch({
+      method: 'POST',
+      path: '/recommend_api/v1/article/recommend_all_feed',
+      body: {
+        cursor: '0',
+        id_type: 2,
+        sort_type: 300,
+      },
+    })
     const json = await res.json()
     return (json.data as PostItem[]).filter((v) => v.item_type === 2)
   }
