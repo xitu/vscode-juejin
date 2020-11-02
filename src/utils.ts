@@ -29,7 +29,7 @@ export const myFetch = ({
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-  })
+  }).then((res) => res.json())
 }
 
 export const sendPv = (path: string) => {
@@ -37,3 +37,27 @@ export const sendPv = (path: string) => {
     visitor.pageview(path).send()
   }
 }
+
+export enum PayloadType {
+  category,
+  article = 2,
+}
+
+export interface ArticleItem {
+  type: PayloadType.article
+  payload: {
+    article_id: string
+    title: string
+    digg_count: number
+  }
+}
+
+export interface CategoryItem {
+  type: PayloadType.category
+  payload: {
+    category_id: string
+    category_name: string
+  }
+}
+
+export type PayloadItem = ArticleItem | CategoryItem

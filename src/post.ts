@@ -6,7 +6,7 @@ import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math-ssr'
 import highlight from '@bytemd/plugin-highlight-ssr'
 import visit from 'unist-util-visit'
-import { myFetch, sendPv } from './utils'
+import { myFetch, PayloadItem, sendPv, PayloadType } from './utils'
 import { URL } from 'url'
 
 const processor = getProcessor({
@@ -79,13 +79,11 @@ export function createPostHandler(context: vscode.ExtensionContext) {
       vscode.ViewColumn.One, // Editor column to show the new webview panel in.
       {} // Webview options. More on these later.
     )
-    const res = await myFetch({
+    const json = await myFetch({
       path: '/content_api/v1/article/detail',
       method: 'POST',
       body: { article_id: id },
     })
-    const json = await res.json()
-
     const getStyleSrc = (name: string) => {
       const href = panel.webview
         .asWebviewUri(
@@ -108,43 +106,71 @@ export function createPostHandler(context: vscode.ExtensionContext) {
   }
 }
 
-export class PostProvider implements vscode.TreeDataProvider<PostItem> {
-  private ee = new vscode.EventEmitter<PostItem | void>()
+export class PostProvider implements vscode.TreeDataProvider<PayloadItem> {
+  private ee = new vscode.EventEmitter<PayloadItem | void>()
   readonly onDidChangeTreeData = this.ee.event
 
   refresh() {
     this.ee.fire()
   }
 
-  getTreeItem({
-    item_info: { article_id, article_info },
-  }: PostItem): vscode.TreeItem {
-    return {
-      label: article_info.title,
-      tooltip: article_info.title,
-      iconPath: vscode.ThemeIcon.File,
-      description: article_info.digg_count.toString(),
-      command: {
-        command: 'juejin.post.open',
-        title: '',
-        arguments: [article_id, article_info.title],
-      },
+  getTreeItem(p: PayloadItem): vscode.TreeItem {
+    switch (p.type) {
+      case PayloadType.category:
+        return {
+          label: p.payload.category_name,
+          tooltip: p.payload.category_name,
+          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+        }
+      case PayloadType.article:
+        return {
+          label: p.payload.title,
+          tooltip: p.payload.title,
+          iconPath: vscode.ThemeIcon.File,
+          description: p.payload.digg_count.toString(),
+          command: {
+            command: 'juejin.post.open',
+            title: '',
+            arguments: [p.payload.article_id, p.payload.title],
+          },
+        }
+      default:
+        return {}
     }
   }
 
-  async getChildren(element?: PostItem) {
-    if (element) return []
-
-    const res = await myFetch({
-      method: 'POST',
-      path: '/recommend_api/v1/article/recommend_all_feed',
-      body: {
-        cursor: '0',
-        id_type: 2,
-        sort_type: 300,
-      },
-    })
-    const json = await res.json()
-    return (json.data as PostItem[]).filter((v) => v.item_type === 2)
+  async getChildren(element?: PayloadItem) {
+    if (element) {
+      if (element.type === PayloadType.category) {
+        const json = await myFetch({
+          method: 'POST',
+          path: '/recommend_api/v1/article/recommend_cate_feed',
+          body: {
+            cursor: '0',
+            cate_id: element.payload.category_id,
+            id_type: 2,
+            sort_type: 300,
+          },
+        })
+        return (json.data as any[]).map((v) => {
+          return {
+            type: PayloadType.article,
+            payload: v.article_info,
+          }
+        })
+      } else {
+        return []
+      }
+    } else {
+      const json = await myFetch({
+        path: '/tag_api/v1/query_category_briefs',
+      })
+      return (json.data as any[]).map((v) => {
+        return {
+          type: PayloadType.category,
+          payload: v,
+        }
+      })
+    }
   }
 }
