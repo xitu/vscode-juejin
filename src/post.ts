@@ -1,3 +1,4 @@
+import type { Element } from 'hast'
 import * as vscode from 'vscode'
 import * as path from 'path'
 import { getProcessor } from 'bytemd'
@@ -17,18 +18,28 @@ const processor = getProcessor({
       rehype: (p) =>
         p.use(() => {
           return (tree) => {
-            visit(tree, 'element', (node) => {
-              try {
-                if (node.tagName === 'a') {
-                  const p = node.properties as any
-                  const url = new URL(p.href)
-                  if (url.host === 'juejin.im') {
-                    url.searchParams.set('utm_source', 'vscode')
-                  }
-                  p.href = url.toString()
+            visit<Element>(tree, 'element', (node) => {
+              if (node.tagName === 'img') {
+                const p = node.properties
+                if (typeof p?.src === 'string' && p.src.startsWith('//')) {
+                  p.src = 'https:' + p.src
                 }
-              } catch (err) {
-                console.error(err)
+              }
+
+              if (node.tagName === 'a') {
+                const p = node.properties
+
+                try {
+                  if (typeof p?.href === 'string') {
+                    const url = new URL(p.href)
+                    if (url.host === 'juejin.im') {
+                      url.searchParams.set('utm_source', 'vscode')
+                    }
+                    p.href = url.toString()
+                  }
+                } catch (err) {
+                  console.error(err)
+                }
               }
             })
           }
