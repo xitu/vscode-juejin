@@ -1,0 +1,94 @@
+{
+  "name": "juejin",
+  "displayName": "掘金",
+  "description": "在 VSCode 中刷掘金",
+  "version": "0.1.2",
+  "publisher": "xitu",
+  "engines": {
+    "vscode": "^1.45.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "xitu",
+    "juejin",
+    "稀土",
+    "掘金"
+  ],
+  "icon": "assets/logo.png",
+  "activationEvents": [
+    "onView:juejin.post"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "juejin",
+          "title": "掘金",
+          "icon": "assets/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "juejin": [
+        {
+          "id": "juejin.post",
+          "name": "文章"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "juejin.post.refresh",
+          "group": "navigation",
+          "when": "view == juejin.post"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "juejin.post.open-external",
+          "group": "inline",
+          "when": "view == juejin.post"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "juejin.post.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "juejin.post.open-external",
+        "title": "Open external",
+        "icon": "$(link-external)"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run build",
+    "dev": "webpack --mode development --watch",
+    "build": "webpack --mode production"
+  },
+  "devDependencies": {
+    "@bytemd/plugin-frontmatter": "^1.1.0",
+    "@bytemd/plugin-highlight-ssr": "^1.1.0",
+    "@bytemd/plugin-math-ssr": "^1.1.0",
+    "@types/node": "^14.0.27",
+    "@types/node-fetch": "^2.5.7",
+    "@types/universal-analytics": "^0.4.4",
+    "@types/vscode": "1.45.0",
+    "bytemd": "^1.2.0",
+    "node-fetch": "^2.6.0",
+    "node-machine-id": "^1.1.12",
+    "ts-loader": "^8.0.2",
+    "typescript": "^3.9.7",
+    "universal-analytics": "^0.4.23",
+    "vscode-test": "^1.3.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
