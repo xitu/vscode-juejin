@@ -6,7 +6,7 @@ import frontmatter from '@bytemd/plugin-frontmatter'
 import math from '@bytemd/plugin-math-ssr'
 import highlight from '@bytemd/plugin-highlight-ssr'
 import visit from 'unist-util-visit'
-import { myFetch, PayloadItem, sendPv, PayloadType } from './utils'
+import { myFetch, Post, sendPv } from './utils'
 import { URL } from 'url'
 
 const processor = getProcessor({
@@ -48,27 +48,6 @@ const processor = getProcessor({
   ],
 })
 
-export interface PostItem {
-  item_type: number
-  item_info: {
-    article_id: string
-    article_info: {
-      title: string
-      digg_count: number
-    }
-  }
-}
-
-export function openExternal(item: PostItem) {
-  vscode.env.openExternal(
-    vscode.Uri.parse(
-      'https://juejin.im/post/' +
-        item.item_info.article_id +
-        '?utm_source=vscode'
-    )
-  )
-}
-
 export function createPostHandler(context: vscode.ExtensionContext) {
   return async (id: string, title: string) => {
     sendPv(`/post/${id}`)
@@ -103,74 +82,5 @@ export function createPostHandler(context: vscode.ExtensionContext) {
     ${getStyleSrc('markdown')}
     ${getStyleSrc('app')}
     </head>${html}`
-  }
-}
-
-export class PostProvider implements vscode.TreeDataProvider<PayloadItem> {
-  private ee = new vscode.EventEmitter<PayloadItem | void>()
-  readonly onDidChangeTreeData = this.ee.event
-
-  refresh() {
-    this.ee.fire()
-  }
-
-  getTreeItem(p: PayloadItem): vscode.TreeItem {
-    switch (p.type) {
-      case PayloadType.category:
-        return {
-          label: p.payload.category_name,
-          tooltip: p.payload.category_name,
-          collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-        }
-      case PayloadType.article:
-        return {
-          label: p.payload.title,
-          tooltip: p.payload.title,
-          iconPath: vscode.ThemeIcon.File,
-          description: p.payload.digg_count.toString(),
-          command: {
-            command: 'juejin.post.open',
-            title: '',
-            arguments: [p.payload.article_id, p.payload.title],
-          },
-        }
-      default:
-        return {}
-    }
-  }
-
-  async getChildren(element?: PayloadItem) {
-    if (element) {
-      if (element.type === PayloadType.category) {
-        const json = await myFetch({
-          method: 'POST',
-          path: '/recommend_api/v1/article/recommend_cate_feed',
-          body: {
-            cursor: '0',
-            cate_id: element.payload.category_id,
-            id_type: 2,
-            sort_type: 300,
-          },
-        })
-        return (json.data as any[]).map((v) => {
-          return {
-            type: PayloadType.article,
-            payload: v.article_info,
-          }
-        })
-      } else {
-        return []
-      }
-    } else {
-      const json = await myFetch({
-        path: '/tag_api/v1/query_category_briefs',
-      })
-      return (json.data as any[]).map((v) => {
-        return {
-          type: PayloadType.category,
-          payload: v,
-        }
-      })
-    }
   }
 }

@@ -36,6 +36,10 @@
         {
           "id": "juejin.post",
           "name": "文章"
+        },
+        {
+          "id": "juejin.pin",
+          "name": "沸点"
         }
       ]
     },
@@ -45,6 +49,11 @@
           "command": "juejin.post.refresh",
           "group": "navigation",
           "when": "view == juejin.post"
+        },
+        {
+          "command": "juejin.pin.refresh",
+          "group": "navigation",
+          "when": "view == juejin.pin"
         }
       ],
       "view/item/context": [
@@ -65,6 +74,11 @@
         "command": "juejin.post.open-external",
         "title": "Open external",
         "icon": "$(link-external)"
+      },
+      {
+        "command": "juejin.pin.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ]
   },

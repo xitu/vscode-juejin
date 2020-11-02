@@ -1,6 +1,8 @@
+import vscode from 'vscode'
 import ua from 'universal-analytics'
 import { machineIdSync } from 'node-machine-id'
 import fetch, { HeadersInit } from 'node-fetch'
+import { URL } from 'url'
 
 const visitor = ua('UA-161443856-5', machineIdSync(), {
   strictCidFormat: false,
@@ -39,12 +41,22 @@ export const sendPv = (path: string) => {
 }
 
 export enum PayloadType {
-  category,
-  article = 2,
+  postCategory,
+  post,
+  pinCategory,
+  pin,
 }
 
-export interface ArticleItem {
-  type: PayloadType.article
+export interface PostCategory {
+  type: PayloadType.postCategory
+  payload: {
+    category_id: string
+    category_name: string
+  }
+}
+
+export interface Post {
+  type: PayloadType.post
   payload: {
     article_id: string
     title: string
@@ -52,12 +64,27 @@ export interface ArticleItem {
   }
 }
 
-export interface CategoryItem {
-  type: PayloadType.category
+export interface PinCategory {
+  type: PayloadType.pinCategory
   payload: {
-    category_id: string
-    category_name: string
+    topic_id: string
+    title: string
   }
 }
 
-export type PayloadItem = ArticleItem | CategoryItem
+export interface Pin {
+  type: PayloadType.pin
+  payload: {
+    msg_id: string
+    content: string
+    digg_count: number
+  }
+}
+
+export type PayloadItem = Post | PostCategory | Pin | PinCategory
+
+export function openExternal(path: string) {
+  const url = new URL('https://juejin.im' + path)
+  url.searchParams.append('utm_source', 'vscode')
+  vscode.env.openExternal(vscode.Uri.parse(url.toString()))
+}
