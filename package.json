@@ -2,7 +2,7 @@
   "name": "juejin",
   "displayName": "掘金",
   "description": "在 VSCode 中刷掘金",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "publisher": "xitu",
   "engines": {
     "vscode": "^1.45.0"
