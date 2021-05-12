@@ -18,7 +18,7 @@ export const myFetch = ({
   body?: Record<string, any>
 }) => {
   if (!path.startsWith('http')) {
-    path = 'https://apinew.juejin.im' + path
+    path = 'https://api.juejin.cn' + path
   }
 
   let headers = {} as HeadersInit
@@ -84,7 +84,7 @@ export interface Pin {
 export type PayloadItem = Post | PostCategory | Pin | PinCategory
 
 export function openExternal(path: string) {
-  const url = new URL('https://juejin.im' + path)
+  const url = new URL('https://juejin.cn' + path)
   url.searchParams.append('utm_source', 'vscode')
   vscode.env.openExternal(vscode.Uri.parse(url.toString()))
 }
