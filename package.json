@@ -58,9 +58,8 @@
       ],
       "view/item/context": [
         {
-          "command": "juejin.post.open-external",
-          "group": "inline",
-          "when": "view == juejin.post"
+          "command": "juejin.open-external",
+          "group": "inline"
         }
       ]
     },
@@ -71,7 +70,7 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "juejin.post.open-external",
+        "command": "juejin.open-external",
         "title": "Open external",
         "icon": "$(link-external)"
       },

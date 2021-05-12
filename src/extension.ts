@@ -3,7 +3,7 @@
 import vscode from 'vscode'
 import { createPostHandler } from './post'
 import { DataProvider } from './provider'
-import { PayloadType, Post, openExternal } from './utils'
+import { PayloadType, Post, openExternal, Pin, PayloadItem } from './utils'
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -24,9 +24,33 @@ export function activate(context: vscode.ExtensionContext) {
       'juejin.post.open',
       createPostHandler(context)
     ),
-    vscode.commands.registerCommand('juejin.post.opent-external', (v: Post) => {
-      openExternal('/post/' + v.payload.article_id)
-    })
+    vscode.commands.registerCommand(
+      'juejin.open-external',
+      (v: PayloadItem) => {
+        let path = ''
+        switch (v.type) {
+          case PayloadType.post: {
+            path = '/post/' + v.payload.article_id
+            break
+          }
+          case PayloadType.pin: {
+            path = '/pin/' + v.payload.msg_id
+            break
+          }
+          case PayloadType.postCategory: {
+            path = '/' + v.payload.category_url
+            break
+          }
+          case PayloadType.pinCategory: {
+            path = '/pins/topic/' + v.payload.topic_id
+            break
+          }
+        }
+        if (path) {
+          openExternal(path)
+        }
+      }
+    )
   )
 }
 
